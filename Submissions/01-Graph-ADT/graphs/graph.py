@@ -324,6 +324,9 @@ class Graph:
         Return a valid ordering of vertices in a directed acyclic graph.
         If the graph contains a cycle, throw a ValueError.
         """
+        if self.contains_cycle():
+            return ValueError('Graph contains cycle and cannot be sorted.')
+        
         # Create a stack to hold the vertex ordering.
         stack = list()
         

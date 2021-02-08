@@ -38,10 +38,7 @@ class Graph:
 
     def contains_vertex(self, vertex_id):
         """Return True if the vertex is contained in the graph."""
-        for vertex in self.vertex_dict:
-            if vertex == vertex_id:
-                return True
-        return False
+        return vertex_id in self.vertex_dict
 
     def contains_edge(self, start_id, end_id):
         """
@@ -51,10 +48,7 @@ class Graph:
         Parameters:
         start_id (string): The unique identifier of the first vertex.
         end_id (string): The unique identifier of the second vertex."""
-        for vertex in self.vertex_dict[start_id]:
-            if vertex == end_id:
-                return True
-        return False
+        return end_id in self.vertex_dict[start_id]
 
     def get_vertices(self):
         """
@@ -243,6 +237,7 @@ class Graph:
                         not_visited.remove(neighbor_id)
                         queue.append(neighbor_id)
             components.append(list(seen))
+            
         return components
 
     def dfs_traversal(self, start_id):
@@ -307,7 +302,10 @@ class Graph:
                 # recurse for each vertex in neighbors
                 for neighbor in self.get_neighbors(start_vertex):
                     if neighbor in not_visited:
-                        not_visited.remove(neighbor)
+                        not_visited.remove(neighbor) # This operation is O(n) where n is the vertices in the not_visited.
+                        # The above operation makes this algorith slower rather than using a set for visited and fillin it
+                        # but is better for space because its only creating one array rather than a set for the visted and
+                        # an array of arrays for the different connected components possible in the graph.
                         current_path.add(neighbor)
                         contains_cycle = dfs_traversal_recursive(neighbor)
                     elif neighbor in current_path:

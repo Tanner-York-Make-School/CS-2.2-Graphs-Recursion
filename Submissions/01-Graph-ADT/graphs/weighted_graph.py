@@ -117,7 +117,6 @@ class WeightedGraph():
         vertex2_root = self.find(parent_map, vertex_id2)
         parent_map[vertex1_root] = vertex2_root
 
-
     def find(self, parent_map, vertex_id):
         """Get the root (or, group label) for vertex_id."""
         if(parent_map[vertex_id] == vertex_id):
@@ -129,22 +128,44 @@ class WeightedGraph():
         Use Kruskal's Algorithm to return a list of edges, as tuples of 
         (start_id, dest_id, weight) in the graph's minimum spanning tree.
         """
-        # TODO: Create a list of all edges in the graph, sort them by weight 
+        # Create a list of all edges in the graph, sort them by weight 
         # from smallest to largest
+        edges = []
+        for vertex in self.get_vertices():
+            for neighbor, neighbor_weight in vertex.get_neighbors_with_weights():
+                edges.append((vertex.id, neighbor.id, neighbor_weight))
+        edges.sort(key=lambda edge: edge[2])
 
-        # TODO: Create a dictionary `parent_map` to map vertex -> its "parent". 
+        # Create a dictionary `parent_map` to map vertex -> its "parent". 
         # Initialize it so that each vertex is its own parent.
+        parent_map = {vertext.id:vertext.id for vertext in self.get_vertices()}
 
-        # TODO: Create an empty list to hold the solution (i.e. all edges in the 
+        # Create an empty list to hold the solution (i.e. all edges in the 
         # final spanning tree)
+        spanning_tree = []
 
-        # TODO: While the spanning tree holds < V-1 edges, get the smallest 
+        # While the spanning tree holds < V-1 edges, get the smallest 
         # edge. If the two vertices connected by the edge are in different sets 
         # (i.e. calling `find()` gets two different roots), then it will not 
         # create a cycle, so add it to the solution set and call `union()` on 
         # the two vertices.
+        while len(spanning_tree) < len(self.vertex_dict)-1:
+            smallest_edge = edges.pop(0)
+            vertex1_root = self.find(parent_map, smallest_edge[0])
+            vertex2_root = self.find(parent_map, smallest_edge[1])
+            if vertex1_root != vertex2_root:
+                spanning_tree.append(smallest_edge)
+                self.union(parent_map, smallest_edge[0], smallest_edge[1])
 
-        # TODO: Return the solution list.
+        # Return the solution list.
+        return spanning_tree
+
+    def get_smallest_vetext(self, vertex_to):
+        smallest_vertex_id = list(vertex_to.keys())[0]
+        for vertex_id in vertex_to:
+            if vertex_to[vertex_id] < vertex_to[smallest_vertex_id]:
+                smallest_vertex_id = vertex_id
+        return smallest_vertex_id
 
     def minimum_spanning_tree_prim(self):
         """
@@ -153,34 +174,59 @@ class WeightedGraph():
 
         Assume that the graph is connected.
         """
-        # TODO: Create a dictionary `vertex_to_weight` and initialize all
+        # Create a dictionary `vertex_to_weight` and initialize all
         # vertices to INFINITY - hint: use `float('inf')`
+        vertex_to_weight = {vertex.id:self.INFINITY for vertex in self.get_vertices()} # minheap would be a better option
 
-        # TODO: Choose one vertex and set its weight to 0
+        # Choose one vertex and set its weight to 0
+        vertex_to_weight[self.get_vertices()[0].id] = 0
 
-        # TODO: While `vertex_to_weight` is not empty:
-        # 1. Get the minimum-weighted remaining vertex, remove it from the
-        #    dictionary, & add its weight to the total MST weight
-        # 2. Update that vertex's neighbors, if edge weights are smaller than
-        #    previous weights
+        total_mst_weight = 0
+        # While `vertex_to_weight` is not empty:
+        while vertex_to_weight:
+            # 1. Get the minimum-weighted remaining vertex, remove it from the
+            # dictionary, & add its weight to the total MST weight
+            smallest_vertex_id = self.get_smallest_vetext(vertex_to_weight)
+            total_mst_weight += vertex_to_weight[smallest_vertex_id]
+            del vertex_to_weight[smallest_vertex_id]
 
-        # TODO: Return total weight of MST
+            # 2. Update that vertex's neighbors, if edge weights are smaller than
+            # previous weights
+            smallest_vertex = self.vertex_dict[smallest_vertex_id]
+            for neighbor, neighbor_weight in smallest_vertex.get_neighbors_with_weights():
+                if neighbor.id in vertex_to_weight and neighbor_weight < vertex_to_weight[neighbor.id]:
+                    vertex_to_weight[neighbor.id] = neighbor_weight
+
+        # Return total weight of MST
+        return total_mst_weight
 
     def find_shortest_path(self, start_id, target_id):
         """
         Use Dijkstra's Algorithm to return the total weight of the shortest path
         from a start vertex to a destination.
         """
-        # TODO: Create a dictionary `vertex_to_distance` and initialize all
+        # Create a dictionary `vertex_to_distance` and initialize all
         # vertices to INFINITY - hint: use `float('inf')`
+        vertex_to_distance = {vertex_id:self.INFINITY for vertex_id in self.vertex_dict}
 
-        # TODO: While `vertex_to_distance` is not empty:
-        # 1. Get the minimum-distance remaining vertex, remove it from the
-        #    dictionary. If it is the target vertex, return its distance.
-        # 2. Update that vertex's neighbors by adding the edge weight to the
-        #    vertex's distance, if it is lower than previous.
+        # Set the start ids distance to 0
+        vertex_to_distance[start_id] = 0
 
-        # TODO: Return None if target vertex not found.
+        # While `vertex_to_distance` is not empty:
+        while vertex_to_distance:
+            # 1. Get the minimum-distance remaining vertex, remove it from the
+            #    dictionary. If it is the target vertex, return its distance.
+            smallest_vertex_id = self.get_smallest_vetext(vertex_to_distance)
+            if smallest_vertex_id == target_id:
+                return vertex_to_distance[target_id]
+
+            # 2. Update that vertex's neighbors by adding the edge weight to the
+            #    vertex's distance, if it is lower than previous.
+            smallest_vertex = self.vertex_dict[smallest_vertex_id]
+            for neighbor, neighbor_weight in smallest_vertex.get_neighbors_with_weights():
+                if neighbor.id in vertex_to_distance and neighbor_weight < vertex_to_distance[neighbor.id]:
+                    vertex_to_distance[neighbor.id] = neighbor_weight + vertex_to_distance[smallest_vertex_id]
+            del vertex_to_distance[smallest_vertex_id]
 
 
     def floyd_warshall(self):

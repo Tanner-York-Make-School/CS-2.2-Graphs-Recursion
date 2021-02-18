@@ -234,4 +234,9 @@ class WeightedGraph():
         Return the All-Pairs-Shortest-Paths dictionary, containing the shortest
         paths from each vertex to each other vertex.
         """
-        pass
+        dist = {vertex.id:{vertext.id:self.INFINITY for vertex in self.vertex_dict} for vertext in self.vertex_dict}
+        for k in dist:
+            for i in dist:
+                for j in dist:
+                    dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+        return dist
